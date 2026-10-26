@@ -1,30 +1,22 @@
-// Lab 5: the REST API is now the source of truth (no in-memory issues array).
-// API_BASE_URL comes from js/config.js (loaded first).
+const issueForm = document.getElementById('issue-form');
+const titleInput = document.getElementById('issue-title');
+const descriptionInput = document.getElementById('issue-description');
+const priorityInput = document.getElementById('issue-priority');
+const issuesList = document.getElementById('issues-list');
+const issueCount = document.getElementById('issue-count');
+const formMessage = document.getElementById('form-message');
 
-const issueForm = document.querySelector('#issue-form');
-const titleInput = document.querySelector('#title');
-const descriptionInput = document.querySelector('#description');
-const priorityInput = document.querySelector('#priority');
-const issuesList = document.querySelector('#issues-list');
-const issueCount = document.querySelector('#issue-count');
-const formMessage = document.querySelector('#form-message');
-
-// Send a request, parse the JSON body, and throw if the status is not 2xx
 async function apiRequest(url, options = {}) {
   const response = await fetch(url, options);
-
   let body = null;
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
     body = await response.json();
   }
-
   if (!response.ok) {
-    // API errors look like { error: { code, message } } (see docs/api-contract.md)
     const message = body?.error?.message || `Request failed (${response.status})`;
     throw new Error(message);
   }
-
   return body;
 }
 
@@ -55,7 +47,6 @@ function renderIssues(issues) {
   });
 }
 
-// View: GET /api/issues
 async function loadIssues() {
   try {
     formMessage.textContent = 'Loading issues...';
@@ -68,10 +59,8 @@ async function loadIssues() {
   }
 }
 
-// Create: POST /api/issues
 issueForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-
   const payload = {
     title: titleInput.value.trim(),
     description: descriptionInput.value.trim(),
@@ -80,7 +69,6 @@ issueForm.addEventListener('submit', async (event) => {
 
   try {
     formMessage.textContent = 'Submitting issue...';
-
     await apiRequest(API_BASE_URL, {
       method: 'POST',
       headers: {
@@ -99,10 +87,8 @@ issueForm.addEventListener('submit', async (event) => {
   }
 });
 
-// Change status: PATCH /api/issues/{id}/status
 async function changeIssueStatus(issue) {
   const nextStatus = issue.status === 'Open' ? 'Resolved' : 'Open';
-
   try {
     await apiRequest(`${API_BASE_URL}/${issue.id}/status`, {
       method: 'PATCH',
@@ -111,7 +97,6 @@ async function changeIssueStatus(issue) {
       },
       body: JSON.stringify({ status: nextStatus })
     });
-
     await loadIssues();
   } catch (error) {
     console.error(error);
@@ -119,4 +104,5 @@ async function changeIssueStatus(issue) {
   }
 }
 
+// Initial load from the REST API
 loadIssues();

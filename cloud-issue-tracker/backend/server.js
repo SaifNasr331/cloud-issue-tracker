@@ -6,7 +6,6 @@ const issueRoutes = require('./routes/issues');
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
-// Read allowed origins from environment variable
 const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:8080')
   .split(',')
   .map((origin) => origin.trim());
@@ -30,7 +29,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
+// Health check route
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -38,28 +37,17 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// API routes
 app.use('/api/issues', issueRoutes);
-// Friendly root route: opening the API URL in a browser shows where to go
-app.get('/', (req, res) => {
-  res.status(200).json({
-    name: 'Cloud Issue Tracker API',
-    endpoints: ['/api/health', '/api/issues']
-  });
-});
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     error: { code: 'ROUTE_NOT_FOUND', message: 'Route not found.' }
   });
 });
 
+// Central error handler
 app.use((error, req, res, next) => {
   if (error.type === 'entity.parse.failed') {
     return res.status(400).json({
@@ -72,11 +60,9 @@ app.use((error, req, res, next) => {
   });
 });
 
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    const env = process.env.NODE_ENV || 'development';
-    console.log(`Cloud Issue API listening on http://localhost:${PORT} (${env})`);
-  });
-}
+app.listen(PORT, () => {
+  const env = process.env.NODE_ENV || 'development';
+  console.log(`Cloud Issue API listening on http://localhost:${PORT} (${env})`);
+});
 
 module.exports = app;
